@@ -1,0 +1,10 @@
+# RStudio temporary files
+.Rhistory
+.Rproj.user/
+.RData
+.Ruserdata
+
+# Office temporary files
+~$*.pptx
+~$*.docx
+~$*.xlsx
