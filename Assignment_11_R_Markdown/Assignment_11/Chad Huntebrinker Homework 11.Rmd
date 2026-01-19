@@ -1,0 +1,40 @@
+---
+title: "Chad Huntebrinker Homework 10"
+author: "Chad Huntebrinker"
+date: "2025-11-02"
+output:
+  word_document: default
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup}
+library(ggplot2)
+```
+
+a) Load the Data
+```{r}
+#Load and read the data iris dataset
+data(iris)
+head(iris)
+```
+
+b) Summarize the data
+```{r}
+summary(iris)
+```
+
+c)
+```{r}
+aggregate(Sepal.Length ~ Species, data = iris, mean)
+```
+
+d)
+```{r}
+ggplot(iris, aes(x = Petal.Length, y = Sepal.Length, color = Species)) +
+geom_point(size = 5) +
+labs(title = "Sepal Length vs Petal Length",
+x = "Petal Length",
+y = "Sepal Length") +
+theme_minimal()
+```

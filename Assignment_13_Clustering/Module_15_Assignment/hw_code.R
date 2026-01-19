@@ -1,0 +1,49 @@
+#Chad Huntebrinker
+
+library(FactoMineR)
+library(factoextra)
+library(datasets)
+library(heatmap3)
+
+#Get the data
+data(iris)
+iris_data <- iris
+
+#Exercise 1
+#PCA
+iris_pca <- PCA(iris_data, graph=FALSE, quali.sup = 5)
+fviz_eig(iris_pca)
+fviz_pca_ind(iris_pca, repel=TRUE)
+fviz_pca_biplot(iris_pca, repel=TRUE)
+
+#CA
+iris_ca <- CA(iris_data, graph=FALSE, quali.sup = 5)
+fviz_ca_biplot(iris_ca, repel =TRUE)
+
+#MCA
+iris_pca <- PCA(iris[, -5], graph = FALSE)
+
+p<-fviz_mca_ind(iris_pca,
+                label="none",
+                repel=TRUE,
+                habillage = iris_data, 
+                addEllipses = TRUE,
+                ellipse.level = 0.95)
+print(p)
+## Graph of variables categories
+fviz_mca_var(iris_pca, repel=TRUE)
+
+##Biplot of individuals and variables
+fviz_mca_biplot(iris_pca, repel=TRUE,
+                ggtheme=theme_minimal())
+
+#Exercise 2
+df_scaled <- scale(iris_data[, 1:4])
+
+windows(width = 10, height = 10)
+heatmap3(df_scaled,
+         distfun = function(x) dist(x, method = "euclidean"),
+         hclustfun = function(x, ...) hclust(x, method = "ward.D2"), 
+         scale = "none",
+         main = "Heatmap with Hierarchical Clustering (Iris Dataset)",
+         margins = c(6, 6))

@@ -1,0 +1,116 @@
+---
+title: "Chad Huntebrinker Assignment 6"
+author: "Chad Huntebrinker"
+date: "2025-09-30"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r setup}
+#Chad Huntebrinker
+library(tidyverse)
+library(patchwork)
+library(waterfalls)
+library(ggwordcloud)
+load("corona.RData")
+```
+
+Assignment 1:
+```{r}
+#Assignment 1
+coin_data <- read.table("coin_prices_2017.txt", header = TRUE)
+
+#Get coin data and data just for bitcoin
+coin_data <- coin_data %>%
+  mutate(
+    DATE = ymd(DATE),
+  )
+
+bitcoin_prices <- coin_data %>%
+  filter(COIN_ABR == "BTC") %>%
+  select(DATE, CLOSE)
+
+#Create line graph
+line_chart <- ggplot(bitcoin_prices, aes(x = DATE, y = CLOSE)) +
+  geom_line(color = "darkblue", size = 1) +
+  labs(
+    title = "Bitcoin Daily Closing Price in 2017",
+    x = "Date",
+    y = "Closing Price ($)"
+  ) +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5))
+
+#Prep waterfall data
+btc_waterfall_data <- bitcoin_prices %>%
+  mutate(CHANGE = CLOSE - lag(CLOSE, default = first(CLOSE))) %>%
+  # Calculate the y-axis coordinates for geom_rect
+  mutate(
+    END_PRICE = cumsum(CHANGE),
+    START_PRICE = lag(END_PRICE, default = 0)
+  ) %>%
+  # Add labels for fill colors
+  mutate(DIFF_TYPE = case_when(
+    CHANGE > 0 ~ "Increase",
+    CHANGE < 0 ~ "Decrease",
+    TRUE ~ "Initial"
+  )) %>%
+  # Make sure the first bar has the correct start/end values
+  mutate(
+    START_PRICE = if_else(row_number() == 1, 0, START_PRICE),
+    END_PRICE = if_else(row_number() == 1, first(CLOSE), END_PRICE)
+  )
+
+#Plot the waterfall graph
+waterfall_plot <- ggplot(btc_waterfall_data, aes(x = DATE, fill = DIFF_TYPE)) +
+  geom_rect(aes(
+    xmin = DATE - 10, xmax = DATE + 5, # Adjust bar width
+    ymin = START_PRICE, ymax = END_PRICE
+  )) +
+  #Theme and style
+  scale_x_date(date_breaks = "2 months") +
+  scale_fill_manual(
+    values = c("Increase" = "limegreen", "Decrease" = "red", "Initial" = "gray", "Total" = "steelblue"),
+    name = "Price Change"
+  ) +
+  labs(
+    title = "Waterfall Chart of Bitcoin Price Changes in 2017",
+    x = "Date",
+    y = "Price (USD)"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    legend.position = "bottom"
+  )
+
+line_chart + waterfall_plot
+```
+
+Assignment 2:
+```{r}
+#Assignment 2
+#Refine data
+infected$Date <- as.Date(infected$Date)
+
+#Create subdata with max date and at least 1 infected
+infected_sub <- infected %>% 
+  filter(Date == "2020-03-11") %>% 
+  filter(Infected > 0)
+
+#Manage data for the word cloud
+country_infected_counts <- infected_sub %>%
+  group_by(Country.Region) %>%
+  summarize(Total_Infected = sum(Infected)) %>%
+  mutate(angle = 90 * sample(c(0,1), n(), replace = T, prob = c(0.7, 0.3))) %>%
+  rename(word = Country.Region, n = Total_Infected)
+
+#Plot the word cloud
+ggplot(country_infected_counts, aes(label = word, size = n, angle = angle, color = word)) +
+  geom_text_wordcloud(area_corr_power = 1) +
+  scale_size_area(max_size = 25) +
+  scale_color_viridis_d(option = "magma") +
+  theme_minimal() +
+  labs(title = "Corona Virus Infected by Country")
+```
